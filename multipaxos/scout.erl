@@ -1,0 +1,2 @@
+-module(scout).
+-export([start/0]).
