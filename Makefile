@@ -1,6 +1,6 @@
 ERLC=erlc
 ERLCFLAGS=-o
-SRCDIR=./
+SRCDIR=./src
 LOGDIR=/var/log/mysoftware
 CONFDIR=/etc/mysoftware
 BEAMDIR=./ebin
