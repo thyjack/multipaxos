@@ -25,7 +25,7 @@ next(Database, Leaders, SlotIn, SlotOut, Requests, Scroll) ->
         {ok, {proposal, C3}} when C == C3 ->
           Requests2 = Requests;
         {ok, {decision, C4}} when C == C4 ->
-         Requests2 = Requests;
+          Requests2 = Requests;
         error -> 
           Requests2 = Requests
       end,
