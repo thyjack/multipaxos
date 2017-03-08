@@ -8,14 +8,14 @@
 start(Database) ->
   receive
     {bind, Leaders} -> 
-       next(Database, Leaders, 1, 1, sets:new(), maps:new())
+       next(Database, Leaders, 1, 1, [], maps:new())
   end.
 
 next(Database, Leaders, SlotIn, SlotOut, Requests, Scroll) ->
   receive
     {request, C} ->      % request from client
       %io:format("[replica ~p] request: ~p ~n", [self(), C]),
-      Requests2 = sets:add_element(C, Requests),
+      Requests2 = [C | Requests],
       propose_next(Database, Leaders, SlotIn, SlotOut, Requests2, Scroll);
     {decision, S, C} ->  % decision from commander
       %io:format("[replica ~p] decision made: ~p => ~p ~n", [self(), S, C]),
@@ -48,14 +48,13 @@ update_slot_out(SlotOut, Scroll) ->
 propose_next(Database, Leaders, SlotIn, SlotOut, Requests, Scroll) ->
   WINDOW = 5,
   
-  case (SlotIn < SlotOut + WINDOW) and (sets:size(Requests) > 0) of
+  case (SlotIn < SlotOut + WINDOW) and (Requests /= []) of
     false -> next(Database, Leaders, SlotIn, SlotOut, Requests, Scroll);
     true -> 
       case maps:find(SlotIn, Scroll) of
         {ok, _} -> propose_next(Database, Leaders, SlotIn + 1, SlotOut, Requests, Scroll);
         error ->
-          C = utils:set_min(Requests),
-          Requests2 = sets:del_element(C, Requests),
+          [C | Requests2] = Requests,
           Scroll2 = Scroll#{ SlotIn => {proposal, C} },
           % io:format("[replica ~p] New proposal: ~p => ~p ~n", [self(), SlotIn, C]),
           utils:set_foreach(fun(Leader) -> Leader ! {propose, SlotIn, C} end, Leaders),
