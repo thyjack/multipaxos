@@ -1,3 +1,4 @@
+%%% Oliver Wheeler (ow14) and Hongjiang Liu (hl5314)
 -module(commander).
 -export([start/4]).
 

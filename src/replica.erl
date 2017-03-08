@@ -1,4 +1,4 @@
-
+%%% Oliver Wheeler (ow14) and Hongjiang Liu (hl5314)
 %%% distributed algorithms, n.dulay 27 feb 17
 %%% coursework 2, paxos made moderately complex
 
@@ -7,7 +7,7 @@
 
 start(Database) ->
   receive
-    {bind, Leaders} -> 
+    {bind, Leaders} ->
        next(Database, Leaders, 1, 1, [], maps:new())
   end.
 
@@ -20,13 +20,13 @@ next(Database, Leaders, SlotIn, SlotOut, Requests, Scroll) ->
     {decision, S, C} ->  % decision from commander
       %io:format("[replica ~p] decision made: ~p => ~p ~n", [self(), S, C]),
       case maps:find(S, Scroll) of
-        {ok, {proposal, C2}} when C /= C2 -> 
+        {ok, {proposal, C2}} when C /= C2 ->
           Requests2 = [C2 | Requests];
         {ok, {proposal, C3}} when C == C3 ->
           Requests2 = Requests;
         {ok, {decision, C4}} when C == C4 ->
           Requests2 = Requests;
-        error -> 
+        error ->
           Requests2 = Requests
       end,
 
@@ -47,10 +47,10 @@ update_slot_out(SlotOut, Scroll) ->
 
 propose_next(Database, Leaders, SlotIn, SlotOut, Requests, Scroll) ->
   WINDOW = 5,
-  
+
   case (SlotIn < SlotOut + WINDOW) and (Requests /= []) of
     false -> next(Database, Leaders, SlotIn, SlotOut, Requests, Scroll);
-    true -> 
+    true ->
       case maps:find(SlotIn, Scroll) of
         {ok, _} -> propose_next(Database, Leaders, SlotIn + 1, SlotOut, Requests, Scroll);
         error ->
@@ -69,6 +69,5 @@ perform(Database, Start, End, Scroll) ->
       Database ! {execute, Op},
       Client ! {response, Cid, ok}
   end,
-  
-  perform(Database, Start + 1, End, Scroll).
 
+  perform(Database, Start + 1, End, Scroll).

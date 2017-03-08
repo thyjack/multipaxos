@@ -1,3 +1,4 @@
+%%% Oliver Wheeler (ow14) and Hongjiang Liu (hl5314)
 -module(scout).
 -export([start/3]).
 
@@ -19,7 +20,7 @@ scout_loop(Leader, Acceptors, BallotNum, WaitFor, PValues) ->
         NewWaitFor = sets:del_element(Acceptor, WaitFor),
         WaitForAccSize = sets:size(NewWaitFor),
         AcceptorsHalfSize = sets:size(Acceptors) / 2,
-        if 
+        if
           WaitForAccSize < AcceptorsHalfSize ->
             Leader ! {adopted, BallotNum, NewPValues},
             exit(scout);

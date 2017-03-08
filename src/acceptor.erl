@@ -1,3 +1,4 @@
+%%% Oliver Wheeler (ow14) and Hongjiang Liu (hl5314)
 -module(acceptor).
 -export([start/0]).
 
@@ -6,7 +7,7 @@ start() ->
 
 accept(BallotNum, Accepted) ->
   receive
-    {p1a, Leader, Ballot} ->      
+    {p1a, Leader, Ballot} ->
       % io:format("[acceptor ~p] p1a ~n", [self()]),
       if (BallotNum == none) or (Ballot > BallotNum) ->
         Leader ! {p1b, self(), Ballot, Accepted},
