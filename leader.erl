@@ -15,6 +15,7 @@ next(Acceptors, Replicas, Ballot, Active, Proposals) ->
     {preempted, {R, L}} ->
       case {R, L} > Ballot of
         true ->
+          % io:format("[leader ~p] preempted ballot ~p ~n", [self(), {R, L}]),
           Ballot2 = {R + 1, self()},
           spawn(scout, start, [self(), Acceptors, Ballot2]),
           next(Acceptors, Replicas, Ballot2, false, Proposals);
@@ -22,6 +23,7 @@ next(Acceptors, Replicas, Ballot, Active, Proposals) ->
           next(Acceptors, Replicas, Ballot, Active, Proposals)
       end;
     {propose, S, C} ->
+      % io:format("[leader ~p] received proposal (active=~p): ~p => ~p ~n", [self(), Active, S, C]),
       case maps:find(S, Proposals) of
         error ->
           Proposals2 = Proposals#{ S => C },
@@ -38,6 +40,7 @@ next(Acceptors, Replicas, Ballot, Active, Proposals) ->
     {adopted, B, PVal} when B == Ballot ->
       PMax = pmax(PVal),
       Proposals2 = maps:merge(Proposals, PMax),
+      % io:format("[leader ~p] adpoted ~p for ballot ~p ~n", [self(), Proposals2, B]),
       maps:fold(
         fun(S, C, ok) -> spawn(commander, start, [self(), Acceptors, Replicas, {Ballot, S, C}]), ok end, 
         ok, 

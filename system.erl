@@ -21,8 +21,9 @@ start() ->
 
   {Replicas, Acceptors, Leaders} = lists:unzip3(Components),
 
-  [ Replica ! {bind, Leaders} || Replica <- Replicas ],
-  [ Leader  ! {bind, Acceptors, Replicas} || Leader <- Leaders ],
+  [ Replica ! {bind, sets:from_list(Leaders)} || Replica <- Replicas ],
+  [ Leader  ! {bind, sets:from_list(Acceptors), 
+                     sets:from_list(Replicas)} || Leader <- Leaders ],
 
   _Clients = [ spawn(client, start, 
                [Replicas, N_accounts, Max_amount, End_after])

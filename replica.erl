@@ -8,18 +8,24 @@
 start(Database) ->
   receive
     {bind, Leaders} -> 
-       next(Database, Leaders, 1, 1, [], maps:new())
+       next(Database, Leaders, 1, 1, sets:new(), maps:new())
   end.
 
 next(Database, Leaders, SlotIn, SlotOut, Requests, Scroll) ->
   receive
     {request, C} ->      % request from client
-      Requests2 = [C | Requests],
+      %io:format("[replica ~p] request: ~p ~n", [self(), C]),
+      Requests2 = sets:add_element(C, Requests),
       propose_next(Database, Leaders, SlotIn, SlotOut, Requests2, Scroll);
     {decision, S, C} ->  % decision from commander
-      case maps:find(Scroll, S) of
-        {ok, {proposal, C2}} -> 
-          Requests2 = [C2 | Requests];
+      %io:format("[replica ~p] decision made: ~p => ~p ~n", [self(), S, C]),
+      case maps:find(S, Scroll) of
+        {ok, {proposal, C2}} when C /= C2 -> 
+          Requests2 = sets:add_element(C2, Requests);
+        {ok, {proposal, C3}} when C == C3 ->
+          Requests2 = Requests;
+        {ok, {decision, C4}} when C == C4 ->
+         Requests2 = Requests;
         error -> 
           Requests2 = Requests
       end,
@@ -27,7 +33,9 @@ next(Database, Leaders, SlotIn, SlotOut, Requests, Scroll) ->
       Scroll2 = Scroll#{ S => {decision, C} },
       SlotOut2 = update_slot_out(SlotOut, Scroll2),
       perform(Database, SlotOut, SlotOut2, Scroll2),
-      propose_next(Database, Leaders, SlotIn, SlotOut2, Requests2, Scroll2)
+
+      Scroll3 = lists:foldl(fun(Slot, Scr) -> maps:remove(Slot, Scr) end, Scroll2, lists:seq(SlotOut, SlotOut2 - 1)),
+      propose_next(Database, Leaders, SlotIn, SlotOut2, Requests2, Scroll3)
   end. % receive
 
 update_slot_out(SlotOut, Scroll) ->
@@ -37,21 +45,20 @@ update_slot_out(SlotOut, Scroll) ->
     {ok, {decision, _}} -> update_slot_out(SlotOut + 1, Scroll)
    end.
 
-propose_next(Database, Leaders, SlotIn, SlotOut, [], Scroll) ->
-  next(Database, Leaders, SlotIn, SlotOut, [], Scroll);
 propose_next(Database, Leaders, SlotIn, SlotOut, Requests, Scroll) ->
   WINDOW = 5,
   
-  case (SlotIn < SlotOut + WINDOW) of
+  case (SlotIn < SlotOut + WINDOW) and (sets:size(Requests) > 0) of
     false -> next(Database, Leaders, SlotIn, SlotOut, Requests, Scroll);
     true -> 
       case maps:find(SlotIn, Scroll) of
         {ok, _} -> propose_next(Database, Leaders, SlotIn + 1, SlotOut, Requests, Scroll);
         error ->
-          C = lists:min(Requests),
-          Requests2 = lists:delete(C, Requests),
+          C = utils:set_min(Requests),
+          Requests2 = sets:del_element(C, Requests),
           Scroll2 = Scroll#{ SlotIn => {proposal, C} },
-          [Leader ! {propose, SlotIn, C} || Leader <- Leaders],
+          % io:format("[replica ~p] New proposal: ~p => ~p ~n", [self(), SlotIn, C]),
+          utils:set_foreach(fun(Leader) -> Leader ! {propose, SlotIn, C} end, Leaders),
           propose_next(Database, Leaders, SlotIn + 1, SlotOut, Requests2, Scroll2)
       end
   end.
