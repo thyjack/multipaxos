@@ -1,3 +1,4 @@
+%%% Oliver Wheeler (ow14) and Hongjiang Liu (hl5314)
 -module(utils).
 -export([set_foreach/2, set_min/1]).
 

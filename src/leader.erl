@@ -1,3 +1,4 @@
+%%% Oliver Wheeler (ow14) and Hongjiang Liu (hl5314)
 -module(leader).
 -export([start/0]).
 
@@ -27,7 +28,7 @@ next(Acceptors, Replicas, Ballot, Active, Proposals) ->
       case maps:find(S, Proposals) of
         error ->
           Proposals2 = Proposals#{ S => C },
-          if 
+          if
             Active ->
               spawn(commander, start, [self(), Acceptors, Replicas, {Ballot, S, C}]);
             true ->
@@ -42,8 +43,8 @@ next(Acceptors, Replicas, Ballot, Active, Proposals) ->
       Proposals2 = maps:merge(Proposals, PMax),
       % io:format("[leader ~p] adpoted ~p for ballot ~p ~n", [self(), Proposals2, B]),
       maps:fold(
-        fun(S, C, ok) -> spawn(commander, start, [self(), Acceptors, Replicas, {Ballot, S, C}]), ok end, 
-        ok, 
+        fun(S, C, ok) -> spawn(commander, start, [self(), Acceptors, Replicas, {Ballot, S, C}]), ok end,
+        ok,
         Proposals2),
       next(Acceptors, Replicas, Ballot, true, Proposals2)
   end.
@@ -52,9 +53,9 @@ next(Acceptors, Replicas, Ballot, Active, Proposals) ->
 pmax(PVals) ->
   PMax = pmax_helper(PVals),
   maps:map(fun(_, {_, C}) -> C end, PMax).
-pmax_helper(PVals) -> 
+pmax_helper(PVals) ->
   sets:fold(
-    fun({B, S, C}, Acc) -> 
+    fun({B, S, C}, Acc) ->
       case maps:find(S, Acc) of
         error -> Acc#{ S => {B, C} };
         {ok, {B2, _}} ->
@@ -63,6 +64,6 @@ pmax_helper(PVals) ->
             true -> Acc
           end
       end
-    end, 
-    maps:new(), 
+    end,
+    maps:new(),
     PVals).
