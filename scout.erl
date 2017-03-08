@@ -15,9 +15,9 @@ scout_loop(Leader, Acceptors, BallotNum, WaitFor, PValues) ->
     {p1b, Acceptor, BallotAcc, Accepted} ->
       if BallotAcc == BallotNum ->
         NewPValues = sets:union(PValues, Accepted),
-        NewWaitFor = sets:del_element(Acceptor, WaitFor),
-        WaitForAccSize = sets:size(NewWaitFor),
-        AcceptorsHalfSize = sets:size(Acceptors) / 2,
+        NewWaitFor = lists:delete(Acceptor, WaitFor),
+        WaitForAccSize = length(NewWaitFor),
+        AcceptorsHalfSize = length(Acceptors) / 2,
         if 
           WaitForAccSize < AcceptorsHalfSize ->
             Leader ! {adopted, BallotNum, NewPValues},

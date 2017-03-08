@@ -16,7 +16,7 @@ accept(BallotNum, Accepted) ->
       end;
     {p2a, Leader, {B, S, C}} ->
       if B == BallotNum ->
-        NewSet = sets:add_element(Accepted, {B, S, C}),
+        NewSet = sets:add_element({B, S, C}, Accepted),
         Leader ! {p2b, self(), B, NewSet},
         accept(B, NewSet);
       true ->

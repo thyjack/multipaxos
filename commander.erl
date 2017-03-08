@@ -12,7 +12,7 @@ command_loop(Leader, Acceptors, Replicas, {B,S,C}, WaitFor) ->
   receive
     {p2b, Acceptor, AccBallotNum} ->
       if AccBallotNum == B ->
-        NewWaitFor = sets:del_element(Acceptor, WaitFor),
+        NewWaitFor = sets:del_element(WaitFor, Acceptor),
         WaitForAccSize = sets:size(NewWaitFor),
         AcceptorsHalfSize = sets:size(Acceptors) / 2,
         if  WaitForAccSize < AcceptorsHalfSize  ->

@@ -22,9 +22,9 @@ next(Acceptors, Replicas, Ballot, Active, Proposals) ->
           next(Acceptors, Replicas, Ballot, Active, Proposals)
       end;
     {propose, S, C} ->
-      case maps:find(Proposals, S) of
+      case maps:find(S, Proposals) of
         error ->
-          Proposals2 = Proposals#{ S := C },
+          Proposals2 = Proposals#{ S => C },
           if 
             Active ->
               spawn(commander, start, [self(), Acceptors, Replicas, {Ballot, S, C}]);
@@ -52,11 +52,11 @@ pmax(PVals) ->
 pmax_helper(PVals) -> 
   sets:fold(
     fun({B, S, C}, Acc) -> 
-      case maps:find(Acc, S) of
-        error -> Acc#{ S := {B, C} };
+      case maps:find(S, Acc) of
+        error -> Acc#{ S => {B, C} };
         {ok, {B2, _}} ->
           if
-            B > B2 -> Acc#{ S := {B, C} };
+            B > B2 -> Acc#{ S => {B, C} };
             true -> Acc
           end
       end
