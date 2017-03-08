@@ -21,7 +21,7 @@ next(Database, Leaders, SlotIn, SlotOut, Requests, Scroll) ->
       %io:format("[replica ~p] decision made: ~p => ~p ~n", [self(), S, C]),
       case maps:find(S, Scroll) of
         {ok, {proposal, C2}} when C /= C2 -> 
-          Requests2 = sets:add_element(C2, Requests);
+          Requests2 = [C2 | Requests];
         {ok, {proposal, C3}} when C == C3 ->
           Requests2 = Requests;
         {ok, {decision, C4}} when C == C4 ->
