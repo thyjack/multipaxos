@@ -24,9 +24,9 @@ next(Acceptors, Replicas, Ballot, Active, Proposals) ->
           next(Acceptors, Replicas, Ballot, Active, Proposals)
       end;
     {propose, S, C} ->
-      % io:format("[leader ~p] received proposal (active=~p): ~p => ~p ~n", [self(), Active, S, C]),
       case maps:find(S, Proposals) of
         error ->
+          % io:format("[leader ~p] received proposal (active=~p): ~p => ~p ~n", [self(), Active, S, C]),
           Proposals2 = Proposals#{ S => C },
           if
             Active ->

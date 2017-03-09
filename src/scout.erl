@@ -14,8 +14,8 @@ scout(Leader, Acceptors, BallotNum) ->
 scout_loop(Leader, Acceptors, BallotNum, WaitFor, PValues) ->
   receive
     {p1b, Acceptor, BallotAcc, Accepted} ->
-      % io:format("[scout ~p] p1b ~n", [self()]),
       if BallotAcc == BallotNum ->
+        % io:format("[scout ~p (~p)] p1b adopt ~n", [Leader, self()]),
         NewPValues = sets:union(PValues, Accepted),
         NewWaitFor = sets:del_element(Acceptor, WaitFor),
         WaitForAccSize = sets:size(NewWaitFor),
@@ -28,6 +28,7 @@ scout_loop(Leader, Acceptors, BallotNum, WaitFor, PValues) ->
             scout_loop(Leader, Acceptors, BallotNum, NewWaitFor, NewPValues)
         end;
       true ->
+        % io:format("[scout ~p (~p)] p1b preempt ~n", [Leader, self()]),
         Leader ! {preempted, BallotAcc},
         exit(scout)
       end

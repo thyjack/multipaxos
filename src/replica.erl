@@ -14,11 +14,11 @@ start(Database) ->
 next(Database, Leaders, SlotIn, SlotOut, Requests, Scroll) ->
   receive
     {request, C} ->      % request from client
-      %io:format("[replica ~p] request: ~p ~n", [self(), C]),
+      % io:format("[replica ~p] request: ~p ~n", [self(), C]),
       Requests2 = [C | Requests],
       propose_next(Database, Leaders, SlotIn, SlotOut, Requests2, Scroll);
     {decision, S, C} ->  % decision from commander
-      %io:format("[replica ~p] decision made: ~p => ~p ~n", [self(), S, C]),
+      % io:format("[replica ~p] decision made: ~p => ~p ~n", [self(), S, C]),
       case maps:find(S, Scroll) of
         {ok, {proposal, C2}} when C /= C2 ->
           Requests2 = [C2 | Requests];
