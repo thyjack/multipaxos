@@ -22,11 +22,10 @@ next(Database, Leaders, SlotIn, SlotOut, Requests, Scroll) ->
       case maps:find(S, Scroll) of
         {ok, {proposal, C2}} when C /= C2 ->
           Requests2 = [C2 | Requests];
-        {ok, {proposal, C3}} when C == C3 ->
-          Requests2 = Requests;
-        {ok, {decision, C4}} when C == C4 ->
-          Requests2 = Requests;
-        error ->
+        {ok, {decision, C3}} when C3 /= C ->
+          Requests2 = error,
+          exit(decision_mismatch);
+        Any ->
           Requests2 = Requests
       end,
 
