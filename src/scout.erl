@@ -23,13 +23,13 @@ scout_loop(Leader, Acceptors, BallotNum, WaitFor, PValues) ->
         if
           WaitForAccSize < AcceptorsHalfSize ->
             Leader ! {adopted, BallotNum, NewPValues},
-            exit(scout);
+            exit({adopted, BallotNum});
           true ->
             scout_loop(Leader, Acceptors, BallotNum, NewWaitFor, NewPValues)
         end;
       true ->
         % io:format("[scout ~p (~p)] p1b preempt ~n", [Leader, self()]),
         Leader ! {preempted, BallotAcc},
-        exit(scout)
-      end
+        exit({preempted, BallotAcc})
+    end
   end.

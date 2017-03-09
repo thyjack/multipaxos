@@ -25,7 +25,7 @@ next(Database, Leaders, SlotIn, SlotOut, Requests, Scroll) ->
         {ok, {decision, C3}} when C3 /= C ->
           Requests2 = error,
           exit(decision_mismatch);
-        Any ->
+        _ ->
           Requests2 = Requests
       end,
 
@@ -56,7 +56,7 @@ propose_next(Database, Leaders, SlotIn, SlotOut, Requests, Scroll) ->
           [C | Requests2] = Requests,
           Scroll2 = Scroll#{ SlotIn => {proposal, C} },
           % io:format("[replica ~p] New proposal: ~p => ~p ~n", [self(), SlotIn, C]),
-          utils:set_foreach(fun(Leader) -> Leader ! {propose, SlotIn, C} end, Leaders),
+          [Leader ! {propose, SlotIn, C} ||  Leader <- Leaders],
           propose_next(Database, Leaders, SlotIn + 1, SlotOut, Requests2, Scroll2)
       end
   end.

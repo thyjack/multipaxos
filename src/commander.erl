@@ -20,13 +20,13 @@ command_loop(Leader, Acceptors, Replicas, {B,S,C}, WaitFor) ->
         if  WaitForAccSize < AcceptorsHalfSize  ->
           % io:format("[commander ~p (~p)] consensus reached, decision = ~p => ~p ~n", [Leader, self(), S, C]),
           utils:set_foreach(fun(Replica) -> Replica ! {decision, S, C} end, Replicas),
-          exit(commander);
+          exit({decision, S, C});
         true ->
           command_loop(Leader,Acceptors,Replicas,{B,S,C}, NewWaitFor)
         end;
       true ->
         % io:format("[commander ~p (~p)] p2b preempt ~n", [Leader, self()]),
         Leader ! {preempted, AccBallotNum},
-        exit(commander)
+        exit({preempted, AccBallotNum})
       end
   end.
