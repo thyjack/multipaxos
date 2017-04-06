@@ -13,13 +13,15 @@ start() ->
 
 next(Acceptors, Replicas, Ballot, Active, Proposals, Failure) ->
   receive
-    {ping, From} ->
-      From ! {pong, self()},
+    {ping, From, R} ->
+      From ! {pong, self(), R},
       next(Acceptors, Replicas, Ballot, Active, Proposals, Failure);
 
-    {pong, From} ->
+    {pong, From, R} ->
       Failure2 = Failure + 1,
-      timer:send_after(2, {fail, Failure2, From}),
+      timer:send_after(2, {fail, Failure2, R}),
+
+      From ! {ping, self()},
       next(Acceptors, Replicas, Ballot, Active, Proposals, Failure2);
 
     {fail, F, R} when F == Failure ->
@@ -32,6 +34,7 @@ next(Acceptors, Replicas, Ballot, Active, Proposals, Failure) ->
         true ->
           Failure2 = 0,
           timer:send_after(2, {fail, Failure2, R}),
+          L ! {ping, self(), R},
 
           next(Acceptors, Replicas, Ballot, false, Proposals, Failure);
         false ->
